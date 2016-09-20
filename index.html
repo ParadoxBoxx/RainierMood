@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Ranier Mood</title>
+	</head>
+	<body>
+		<audio id="rain1">
+		</audio>
+		<audio id="rain2">
+		</audio>
+		<h1>
+		Audio1 Volume:
+		</h1>
+		<p id="vol1">
+		</p>
+		<br>
+		<h1>
+		Audio2 Volume:
+		</h1>
+		<p id="vol2">
+		</p>
+		<script type="text/javascript">
+			// user variables
+			var rainFreq = .5
+
+			// rain sources
+			var rainSources = ["resources\\rain\\Backyard Rain.wav",
+								"resources\\rain\\City Rain.wav"];
+
+			// thunder sources
+			var thunderSources = [];
+
+			// grab 2 audio elements
+			var rain1 = document.getElementById("rain1");
+			var rain2 = document.getElementById("rain2");
+			// don't play immediately
+			rain1.autoplay = false;
+			rain2.autoplay = false;
+
+			// initial load
+			rain1.src = randomElement(rainSources);
+			rain2.src = randomElement(rainSources);
+			rain1.volume = 1.0;
+			rain2.volume = 0.0;
+
+			// start the loop
+			rain1.play();
+			setInterval(flipFlop(),1000);
+
+			// main crossfade function
+			function flipFlop()
+			{
+				// if rain1 is playing
+				if(!rain1.paused)
+				{
+					crossfade(rain1,rain2);
+				}
+				// if rain2 is playing
+				else if(!rain2.paused)
+				{
+					crossfade(rain2,rain1);
+				}
+			}
+
+			// crossfade the 2 audio tracks: audio1 fades out, audio2 fades in
+			function crossfade(audio1,audio2)
+			{
+				// how fast the audio crossfades
+				var rate = .1;
+
+				// testing
+				var vol1 = document.getElementById("vol1");
+				var vol2 = document.getElementById("vol2");
+
+				audio2.play();
+
+				// crossfade
+				while(audio1.volume > 0 && audio2.volume < 1)
+				{
+					if(audio1.volume - rate < 0 && audio2.volume + rate > 1)
+					{
+						audio1.volume = 0;
+						audio2.volume = 1;
+						audio1.pause();
+						vol1.innerHTML = audio1.volume;
+						vol2.innerHTML = audio2.volume;
+						break;
+					}
+					audio1.volume -= rate;
+					audio2.volume += rate;
+					vol1.innerHTML = audio1.volume;
+					vol2.innerHTML = audio2.volume;
+				}
+			}
+
+			// return random resource from the element list
+			function randomElement(elementList)
+			{
+				return elementList[Math.floor(Math.random() * elementList.length)];
+				setTimeout(flipFlop(),10000);
+			}
+		</script>
+	</body>
+</html>
