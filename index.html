@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Ranier Mood</title>
+		<title>Rainier Mood</title>
 		<script src="javascript/makeItRain.js"></script>
 	</head>
 	<body onload="run()">
@@ -9,16 +9,13 @@
 		</audio>
 		<audio id="rain2">
 		</audio>
-		<h1>
-		Audio1 Volume:
-		</h1>
-		<p id="vol1">
-		</p>
+		<audio id="thunder"></audio>
 		<br>
-		<h1>
-		Audio2 Volume:
-		</h1>
-		<p id="vol2">
-		</p>
+		Rain Frequency: <input type="range" id="rainFreq" min="0.00" max=".10" step="0.01" onchange="updateFreq()"></input><div id="rainFreqLbl">
+		</div>
+		<br>
+		Thunder Frequency: <input type="range" id="thunderFreq" min="0.00" max="0.90" step="0.01" onchange="updateFreq()"></input>
+		<div id="thunderFreqLbl">
+		</div>
 	</body>
 </html>

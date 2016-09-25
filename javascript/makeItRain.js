@@ -1,94 +1,204 @@
+// rain sources
+var rainSources = ["resources\\rain\\Backyard Rain.wav",
+					"resources\\rain\\City Rain.wav"];
+
+// thunder sources
+var thunderSources = ["resources\\thunder\\Thunder1.wav",
+						"resources\\thunder\\Thunder2.wav",
+						"resources\\thunder\\Thunder3.wav",
+						"resources\\thunder\\Thunder4.wav",
+						"resources\\thunder\\Thunder5.wav",
+						"resources\\thunder\\Thunder6.wav",];
+
 function run()
-{	
-	// user variables
-	var rainFreq = .5;
+{
+	// user input variables
+	var rainFreq = document.getElementById("rainFreq");
+	var thunderFreq = document.getElementById("thunderFreq");
 
-	// global
-	var timer;
+	// show values of sliders
+	document.getElementById("rainFreqLbl").innerHTML = rainFreq.value;
+	document.getElementById("thunderFreqLbl").innerHTML = thunderFreq.value;
 
-	// state based system
-	// 0 = playing
-	// 1 = crossfading
-	var state = 0;
-
-	// rain sources
-	var rainSources = ["resources\\rain\\Backyard Rain.wav",
-						"resources\\rain\\City Rain.wav"];
-
-	// thunder sources
-	var thunderSources = [];
-
-	// grab 2 audio elements
+	// grab 3 audio elements
 	var rain1 = document.getElementById("rain1");
 	var rain2 = document.getElementById("rain2");
-	// don't play immediately
-	rain1.autoplay = false;
-	rain2.autoplay = false;
+	var thunder = document.getElementById("thunder");
 
-	// initial load
-	rain1.src = randomElement(rainSources);
-	rain2.src = randomElement(rainSources);
+	// crossfade check timers
+	var shouldICrossfadeTimer;
+	var crossfadeTimer;
+	var thunderTimer;
+
+	// set volume and stop autoplay
 	rain1.volume = 1.00;
 	rain2.volume = 0.00;
-	document.getElementById("vol1").innerHTML = rain1.volume;
-	document.getElementById("vol2").innerHTML = rain2.volume;
+	thunder.volume = 1.00;
+	rain1.autoplay = false;
+	rain2.autoplay = false;
+	thunder.autoplay = false;
 
-	// start loop
-	rain1.play();
-	setTimeout(delay,10000,rain1,rain2);
-
-	// dummy function to continue the loop once the proper time has waited.
-	function delay(audio1,audio2)
+	// assign initial tracks
+	rain1.src = randomElement(rainSources);
+	rain2.src = randomElement(rainSources);
+	while(rain1.src == rain2.src)
 	{
-		crossfadeWho(audio1,audio2);
+		rain2.src = randomElement(rainSources);
 	}
+	thunder.src = randomElement(thunderSources);
 
-	// decide who to crossfade
-	function crossfadeWho(audio1,audio2)
+
+	// event listener for when the audio can play.
+	rain1.addEventListener("loadedmetadata",metaDataReadyRain1);
+	rain2.addEventListener("loadedmetadata",metaDataReadyRain2);
+	thunder.addEventListener("canplaythrough",startThunder);
+
+}
+
+function readyToCrossfade()
+{
+	//console.log("rain2 ready to crossfade");
+	rain2.removeEventListener("canplaythrough",readyToCrossfade);
+	shouldICrossfadeTimer = setInterval(shouldICrossfade,5000);
+}
+
+function shouldICrossfade()
+{
+	//console.log("Checking if I should crossfade...")
+	// grab the input value as well as the % of the way through the track
+	var userValue = Number(rainFreq.value);
+	var nearingEnd = rain1.currentTime/rain1.duration;
+
+	// how fast each crossfade amount is by
+	var rate = 250;
+
+	//console.log("Current Time: " + rain1.currentTime);
+
+	// add together to get a threshold for the RGN to roll against
+	var score = userValue + nearingEnd;
+
+	//console.log(userValue + " + " + nearingEnd + " = " + score)
+
+	var randSwitch = Math.random();
+
+	//console.log(score +" < " + randSwitch + " ?");
+
+	// if we generate a number lower than the score;
+	// will become more difficult to fail as user increases 
+	// frequency as well as the track coming close to the end.
+	if(randSwitch < score)
 	{
-		// how often to call crossfade by the amount defined in crossfade.
-		var crossfadeSpeed = 250;
-
-		if(!audio1.paused)
-		{
-			audio2.play();
-			timer = setInterval(crossfade,crossfadeSpeed,audio1,audio2);
-		}
-		else if(!audio2.paused)
-		{
-			audio1.play();
-			timer = setInterval(crossfade,crossfadeSpeed,audio2,audio1);
-		}
+		//console.log("Time to crossfade");
+		clearInterval(shouldICrossfadeTimer);
+		rain2.play();
+		crossfadeTimer = setInterval(crossfade,rate);
 	}
-
-	// fade audio1 out and audio2 in
-	function crossfade(audio1,audio2)
+	/*else
 	{
-		// amount to crossfade by
-		var amount = .01;
+		console.log("Do not crossfade")
+	}*/
+	//console.log("===================================")
+}
 
-		// if the crossfade has completed
-		if(audio1.volume - amount < 0 && audio2.volume + amount > 1)
-		{
-			// stop audio1 and wait for the next crossfade
-			audio1.volume = 0.00;
-			audio2.volume = 1.00;
-			audio1.pause();
-			clearInterval(timer);
-			setTimeout(delay,10000,audio1,audio2);
-		}
-		else
-		{
-			audio1.volume -= amount;
-			audio2.volume += amount;
-		}
-		document.getElementById("vol1").innerHTML = audio1.volume;
-		document.getElementById("vol2").innerHTML = audio2.volume;
-	}
+function crossfade()
+{
+	// amount to crossfade by
+	var amount = .01;
 
-	// return random resource from the element list
-	function randomElement(elementList)
+	// if the crossfade has completed
+	if(rain1.volume - amount < 0 && rain2.volume + amount > 1)
 	{
-		return elementList[Math.floor(Math.random() * elementList.length)];
+		// stop the crossfade
+		clearInterval(crossfadeTimer);
+
+		// stop rain1 and wait for the next crossfade
+		rain1.volume = 0.00;
+		rain2.volume = 1.00;
+		rain1.pause();
+
+		// juggle the ID's around
+		rain2.id = "rainTemp";
+		rain1.id = "rain2";
+		rainTemp.id = "rain1";
+
+		// randomize next track
+		rain2.src = randomElement(rainSources);
+		while(rain1.src == rain2.src)
+		{
+			rain2.src = randomElement(rainSources);
+		}
+		rain2.addEventListener("loadedmetadata",metaDataReadyRain2);
 	}
+	else
+	{
+		rain1.volume -= amount;
+		rain2.volume += amount;
+	}
+	//console.log("Vol1: " + rain1.volume);
+	//console.log("Vol2: " + rain2.volume);
+}
+
+// return random resource from the element list
+function randomElement(elementList)
+{
+	return elementList[Math.floor(Math.random() * elementList.length)];
+}
+
+// return a random time for the given tracktrack.
+function randomStartTime(trackDuration)
+{
+	var temp = Math.floor(Math.random() * trackDuration);
+	return temp;
+}
+
+function metaDataReadyRain1()
+{
+	//console.log("rain1 meta data ready");
+	rain1.removeEventListener("loadedmetadata", metaDataReadyRain1);
+	rain1.currentTime = randomStartTime(rain1.duration);
+	rain1.addEventListener("canplaythrough",rain1.play);
+}
+
+function metaDataReadyRain2()
+{
+	//console.log("rain2 meta data ready");
+	rain2.removeEventListener("loadedmetadata",metaDataReadyRain2);
+	rain2.currentTime = randomStartTime(rain2.duration);
+	rain2.addEventListener("canplaythrough", readyToCrossfade);
+}
+
+// probably for debugging
+function updateFreq()
+{
+	document.getElementById("rainFreqLbl").innerHTML = rainFreq.value;
+	document.getElementById("thunderFreqLbl").innerHTML = thunderFreq.value;
+}
+
+function startThunder()
+{
+	thunderTimer = setInterval(shouldIThunder,10000);
+}
+
+// random rolls for when thunder should play
+function shouldIThunder()
+{
+	console.log("should I thunder?");
+	if(thunderFreq.value > Math.random())
+	{
+		clearInterval(thunderTimer);
+		thunder.play();
+		thunder.addEventListener("ended",resetThunder);
+		//console.log("yes");
+	}
+	/*else
+	{
+		console.log("no");
+	}*/
+}
+
+function resetThunder()
+{
+	thunder.removeEventListener("ended",resetThunder);
+	thunder.src = randomElement(thunderSources);
+	thunder.addEventListener("canplaythrough", startThunder);
 }
