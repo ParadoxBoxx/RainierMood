@@ -55,6 +55,7 @@ function run()
 
 }
 
+// when the new track can be played without pausing
 function readyToCrossfade()
 {
 	//console.log("rain2 ready to crossfade");
@@ -62,9 +63,11 @@ function readyToCrossfade()
 	shouldICrossfadeTimer = setInterval(shouldICrossfade,5000);
 }
 
+//random chance to crossfade influenced by user input and duration through the track.
 function shouldICrossfade()
 {
 	//console.log("Checking if I should crossfade...")
+
 	// grab the input value as well as the % of the way through the track
 	var userValue = Number(rainFreq.value);
 	var nearingEnd = rain1.currentTime/rain1.duration;
@@ -100,6 +103,7 @@ function shouldICrossfade()
 	//console.log("===================================")
 }
 
+// the actual crossfade work-horse function
 function crossfade()
 {
 	// amount to crossfade by
@@ -144,13 +148,14 @@ function randomElement(elementList)
 	return elementList[Math.floor(Math.random() * elementList.length)];
 }
 
-// return a random time for the given tracktrack.
+// return a random time for the given track
 function randomStartTime(trackDuration)
 {
 	var temp = Math.floor(Math.random() * trackDuration);
 	return temp;
 }
 
+// when the meta data is ready we can pick a random time to start
 function metaDataReadyRain1()
 {
 	//console.log("rain1 meta data ready");
@@ -159,6 +164,8 @@ function metaDataReadyRain1()
 	rain1.addEventListener("canplaythrough",rain1.play);
 }
 
+// when the meta data is ready we can pick a random time to start
+// this function was broken in 2 because rain2 always usurps rain1
 function metaDataReadyRain2()
 {
 	//console.log("rain2 meta data ready");
@@ -174,6 +181,7 @@ function updateFreq()
 	document.getElementById("thunderFreqLbl").innerHTML = thunderFreq.value;
 }
 
+// start randomly triggering thunder
 function startThunder()
 {
 	thunderTimer = setInterval(shouldIThunder,10000);
@@ -196,6 +204,7 @@ function shouldIThunder()
 	}*/
 }
 
+// when the last thunder has finished, pick a new thunder and start randomly triggering thunder again
 function resetThunder()
 {
 	thunder.removeEventListener("ended",resetThunder);
